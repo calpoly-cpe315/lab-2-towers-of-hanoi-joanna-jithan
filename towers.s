@@ -1,7 +1,6 @@
 	.arch armv8-a
 	.text
 
-@ print function is complete, no modifications needed
     .global	print
 print:
       stp    x29, x30, [sp, -16]! //Store FP, LR.
@@ -20,45 +19,89 @@ startstring:
     .global	towers
 towers:
    /* Save calllee-saved registers to stack */
+      stp    x29, x30, [sp, -16]! //Store FP, LR.
+      add    x29, sp, 0
+      str   x19, [sp, -8]!
+      str   x20, [sp, -8]!
+      str   x21, [sp, -8]!
+      str   x22, [sp, -8]!
+      str   x23, [sp, -8]!
    
    /* Save a copy of all 3 incoming parameters to callee-saved registers */
+      mov   w19, w0 /* num discs */
+      mov   x20, x1 /* start */
+      mov   x21, x2 /* goal */
 
 if:
    /* Compare numDisks with 2 or (numDisks - 2)*/
+   cmp   w19, 2
    /* Check if less than, else branch to else */
-   
+   B.LT  else
+
    /* set print function's start to incoming start */
+   mov   x1, x20
    /* set print function's end to goal */
+   mov   x2, x21
    /* call print function */
+   bl    print
    /* Set return register to 1 */
+   mov   x0, 1
    /* branch to endif */
+   bl    endif
 else:
    /* Use a callee-saved varable for temp and set it to 6 */
+   mov   x22, 6
+
    /* Subract start from temp and store to itself */
+   sub x22, x22, x20
+
    /* Subtract goal from temp and store to itself (temp = 6 - start - goal)*/
+   sub x22, x22, x21
 
    /* subtract 1 from original numDisks and store it to numDisks parameter */
+   sub   x19, x19, 1
 
    /* Set end parameter as temp */
+   mov x2, x19
    /* Call towers function */
+   bl towers
    /* Save result to callee-saved register for total steps */
+   mov x23, x0 /* steps */
+    
    /* Set numDiscs parameter to 1 */
+   mov w0, 1
    /* Set start parameter to original start */
+   mov x1, x20
    /* Set goal parameter to original goal */
+   mov x2, x21
    /* Call towers function */
+   bl towers
    /* Add result to total steps so far */
+   add x23, x23, x0
    
    /* Set numDisks parameter to original numDisks - 1 */
+   sub x0, x19, 1 
    /* set start parameter to temp */
+   mov x1, x22
    /* set goal parameter to original goal */
+   mov x2, x23
    /* Call towers function */
+   bl towers
    /* Add result to total steps so far and save it to return register */
+   add x23, x23, x0
+   mov x0, x23
 
 endif:
    /* Restore Registers */
+   ldr   x23, [sp], 8
+   ldr   x22, [sp], 8
+   ldr   x21, [sp], 8
+   ldr   x20, [sp], 8
+   ldr   x19, [sp], 8
+   ldp   x29, x30, [sp], 16
    /* Return from towers function */
+   ret
 
-@ Function main is complete, no modifications needed
     .global	main
 main:
       stp    x29, x30, [sp, -32]!
